@@ -13,3 +13,5 @@ def get_text_message(message):
         bot.send_message(message.from_user.id, 'Я не понимаю вас')
         
 bot.polling(none_stop = True)
+
+print(' ')
