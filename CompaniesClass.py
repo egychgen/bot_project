@@ -29,6 +29,24 @@ class Company:
         self.__country = country
 
 
+    def get_price(self):
+        r = requests.get("https://investmint.ru/{0}/".format(self.__tiker), headers={'User-Agent': ch})
+        text = r.text
+        text = text[text.find("Курс акций") + 10:text.find("Курс акций") + 200]
+        return text[text.find("num150 me-2") + 13:text.find("num150 me-2") + 18]
+
+    def parcing_info(self):
+        r = requests.get("https://investmint.ru/{0}/".format(self.ticker), headers={'User-Agent': ch})
+        text = r.text
+        text = text[text.find("<h2>О компании</h2>") + 19:]
+        text = text[text.find("<p>") + 3:]
+        text = text.replace("<strong>", "")
+        text = text.replace("</strong>", "")
+        text = text[:text.find("</div>") - 4]
+        if text.find("<") > 0 or text.find("<") > 0:
+            text = "We haven't got information"
+        return text
+
     def Get_Multiplicators(self, names):
         if self.__country == "Russia" or self.__country == "Rus" or self.__country == "Россия":
             return self._Get_multiplicator_of_Russian_Comp(names)
