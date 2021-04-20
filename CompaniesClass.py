@@ -1,8 +1,11 @@
 import requests
 import json
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import matplotlib.dates as mdates
 from datetime import datetime
-
+from fake_useragent import UserAgent
+ch = UserAgent().chrome
 
 # Класс компания, принимает значение тикера компании и страны регистрации
 # Доступные методы:
@@ -34,7 +37,7 @@ class Company:
 
 
     def _Get_multiplicator_of_Russian_Comp(self, names):
-        Multiplicator_HTML = requests.get('https://smart-lab.ru/q/{0}/f/y/MSFO'.format(self.__tiker))
+        Multiplicator_HTML = requests.get('https://smart-lab.ru/q/{0}/f/y/MSFO'.format(self.__tiker), headers = {'User-Agent': ch } )
         Multiplicators_Dict = {}
         text = Multiplicator_HTML.text
         for i in range(len(names)):
@@ -59,7 +62,7 @@ class Company:
 
 
     def _Get_multiplicator_of_Abroad_Comp(self, names):
-        Multiplicator_HTML = requests.get('https://finbull.ru/stock/{0}/'.format(self.__tiker))
+        Multiplicator_HTML = requests.get('https://finbull.ru/stock/{0}/'.format(self.__tiker), headers = {'User-Agent': ch } )
         Multiplicators_Dict = {}
         text = Multiplicator_HTML.text
         for i in range(len(names)):
@@ -81,18 +84,17 @@ class Company:
         return Multiplicators_Dict
 
     def Get_Company_Stocks_Grafic(self, date, Grafic_or_Arrays):
-        STOСKS_JSON = requests.get('https://api.bcs.ru/udfdatafeed/v1/history?symbol={0}&resolution=D&from={1}&to={2}'.format(self.__tiker, date[0],date[1]))
+        STOСKS_JSON = requests.get('https://api.bcs.ru/udfdatafeed/v1/history?symbol={0}&resolution=D&from={1}&to={2}'.format(self.__tiker, date[0],date[1]), headers = {'User-Agent': ch } )
         Stoсks_Dict = json.loads(STOСKS_JSON.text)
         if Stoсks_Dict.get("errmsg") is None:
             Time_Array = Stoсks_Dict.get("t")
+            Time_Array = [datetime.utcfromtimestamp(e) for e in Time_Array]
             Price_Array = Stoсks_Dict.get("c")
         else:
             print("There is no such tiker or date period")
             return [0], [0]
         if Grafic_or_Arrays == "Grafic":
             fig = plt.figure(figsize=(20, 9))
-            # for i in range(len(Time_Array)):
-            #     Time_Array[i] = datetime.utcfromtimestamp(Time_Array[i]).strftime('%Y-%m-%d %H:%M:%S')
             plt.plot(Time_Array, Price_Array, color="coral")
             plt.show()
             fig.savefig(self.__tiker)
@@ -106,10 +108,6 @@ class Company:
         selfTime_Array, selfPrice_Array = self.Get_Company_Stocks_Grafic(date, "Arrays");
         otherTime_Array, otherPrice_Array = other.Get_Company_Stocks_Grafic(date, "Arrays");
         fig = plt.figure(figsize=(20, 9))
-        # for i in range(len(self.Time_Array)):
-        #     self.Time_Array[i] = datetime.utcfromtimestamp(self.Time_Array[i]).strftime('%Y-%m-%d %H:%M:%S')
-        # for i in range(len(other.Time_Array)):
-        #     other.Time_Array[i] = datetime.utcfromtimestamp(other.Time_Array[i]).strftime('%Y-%m-%d %H:%M:%S')
         plt.plot(selfTime_Array, selfPrice_Array, color="coral")
         plt.plot(otherTime_Array, otherPrice_Array, color="blue")
         plt.show()
