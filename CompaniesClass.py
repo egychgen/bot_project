@@ -40,7 +40,7 @@ class Company:
         return text[text.find("num150 me-2") + 13:text.find("num150 me-2") + 18]
 
     def get_info(self):
-        r = requests.get("https://investmint.ru/{0}/".format(self.ticker), headers={'User-Agent': ch})
+        r = requests.get("https://investmint.ru/{0}/".format(self.__tiker), headers={'User-Agent': ch})
         text = r.text
         text = text[text.find("<h2>О компании</h2>") + 19:]
         text = text[text.find("<p>") + 3:]
@@ -167,5 +167,6 @@ print(tiker1 + "   "  + str(Comp1.Get_Multiplicators(names)))
 print(tiker2 + "   "  + str(Comp2.Get_Multiplicators(names)))
 
 Comp1.parsing_divd()
+print(Comp1.get_info())
 
 
