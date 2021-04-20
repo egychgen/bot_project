@@ -3,6 +3,7 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import matplotlib.dates as mdates
+import pdfkit
 from datetime import datetime
 from fake_useragent import UserAgent
 ch = UserAgent().chrome
@@ -19,6 +20,9 @@ ch = UserAgent().chrome
 #         Сохраниет график в текущую директорию с название тикер.png
 #     Compare_Grafic_Of_To_Companies принимает на вход дату и другой объект класса company, строит график
 #         цен обоих компаний на одном поле.
+#     get_price Возвращает цену (тип строка)
+#     get_info Возвращает информацию о компании, если таковой нет возвращает что нет информации
+#     parsing_divd Сохраняет в диррикторию таблицу с дивами в пдф
 # Скрытые методы:
 #     _Get_multiplicator_of_Russian_Comp
 #     _Get_multiplicator_of_Abroad_Comp
@@ -35,7 +39,7 @@ class Company:
         text = text[text.find("Курс акций") + 10:text.find("Курс акций") + 200]
         return text[text.find("num150 me-2") + 13:text.find("num150 me-2") + 18]
 
-    def parcing_info(self):
+    def get_info(self):
         r = requests.get("https://investmint.ru/{0}/".format(self.ticker), headers={'User-Agent': ch})
         text = r.text
         text = text[text.find("<h2>О компании</h2>") + 19:]
@@ -131,6 +135,16 @@ class Company:
         plt.show()
         fig.savefig(self.__tiker + "_" + other.__tiker)
 
+    def parsing_divd(self):
+        r = requests.get("https://investmint.ru/{0}/".format(self.__tiker), headers={'User-Agent': ch})
+        text = r.text
+        # print(text)
+        text = text[text.find("История дивидендов") + 100:]
+        text = text[text.find("История дивидендов"):]
+        text = text[text.find("<table"):text.find("</table>") + 8]
+        # text = text[text.find("<table"):]
+        # print(text)
+        pdfkit.from_string('<html><head><meta charset="utf-8"></head><body><h1>Таблица Дивидендов {0}</h>{1}</body></html>'.format(self.__tiker, text), "Otchet_{0}.pdf".format(self.__tiker))
 
 
 date = ["1600000000", "1618317179"]
@@ -151,5 +165,7 @@ Comp2.Get_Company_Stocks_Grafic(date, "Grafic")
 Comp1.Compare_Grafic_Of_To_Companies(Comp2, date)
 print(tiker1 + "   "  + str(Comp1.Get_Multiplicators(names)))
 print(tiker2 + "   "  + str(Comp2.Get_Multiplicators(names)))
+
+Comp1.parsing_divd()
 
 
