@@ -1,6 +1,5 @@
-from telegram import ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
-
+from telegram import ReplyKeyboardMarkup
 
 import os
 import time
@@ -21,7 +20,7 @@ plot_name = None
 
 
 def first_message(bot, update):
-    bot.message.reply_text('Здравствуйте, уважаемый {}! \nДля ознакомления с функционалом бота введите команду \info. '
+    bot.message.reply_text('Здравствуйте, уважаемый {}! \nДля ознакомления с функционалом бота введите команду /info. '
                            'Какую информацию вы хотите узнать?'.format(bot.message.chat.first_name),
                            reply_markup=get_keyboard(0))
 
@@ -149,8 +148,22 @@ def send_comparing_plot(bot, update):
     return 'send_comparing_plot'
 
 
-""""""
+"""Другие функции"""
+def get_company_price(bot, update):
+    global company
+    bot.message.reply_text(company.get_price)
+    follow_question(bot, update)
+    return 'company_price'
 
+def get_company_info(bot, update):
+    global company
+    bot.message.reply_text(company.get_info)
+    follow_question(bot, update)
+    return 'company_info'
+
+def main_func(bot, update):
+    bot.message.reply_text('')
+    return 'main_func' 
 
 def follow_question(bot, update):
     bot.message.reply_text('Хотите ещё что-либо узнать?', reply_markup=get_keyboard(1))
@@ -168,13 +181,16 @@ def main():
     my_bot = Updater(TG_TOKEN, use_context=True)
     my_bot.dispatcher.add_handler(CommandHandler('start', first_message))
     my_bot.dispatcher.add_handler(CommandHandler('info', info_command))
+    my_bot.dispatcher.add_handler(MessageHandler(Filters.regex('Основные понятия, которые вам пригодятся'), main_func))
     my_bot.dispatcher.add_handler(
         ConversationHandler(entry_points=[MessageHandler(Filters.regex('Данные о компании'), company_name_func)],
                             states={'company_name': [MessageHandler(Filters.text, company_country_func)],
                                     'company_country': [MessageHandler(Filters.text, info_about_company)],
                                     'company_info': [
                                         MessageHandler(Filters.regex('Мультипликатор'), multiplicators_names),
-                                        MessageHandler(Filters.regex('График стоимости компании'), plot_start_date)],
+                                        MessageHandler(Filters.regex('График стоимости компании'), plot_start_date),
+                                        MessageHandler(Filters.regex('Стоимость компании'), get_company_price),
+                                        MessageHandler(Filters.regex('Инофрмация о компании'), get_company_info)],
                                     'multiplicators_names': [MessageHandler(Filters.text, multiplicators)],
                                     'plot_start_date': [MessageHandler(Filters.text, plot_end_date)],
                                     'plot_end_date': [MessageHandler(Filters.text, get_plot)],
