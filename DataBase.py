@@ -1,155 +1,240 @@
 import sqlite3
-import CompaniesClass
+import os
+# import CompaniesClass
 
-
-def DBInitialise():
+def db_initialise():
     try:
-        DBConnection = sqlite3.connect("FinanceBot.db")
-        DBObject = DBConnection.cursor()
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
         # Для запроса
         # Request = DBConnection.execute()
-        DBObject.execute("""CREATE TABLE IF NOT EXISTS users(
+        dbobject.execute("""CREATE TABLE IF NOT EXISTS users(
             id INT PRIMARY KEY,
             gender TEXT,
-            age TEXT); 
+            age INT); 
         """)
-        DBConnection.commit()
+        dbconnection.commit()
 
-        DBObject.execute("""CREATE TABLE IF NOT EXISTS Companies(
-                tiker TEXT PRIMARY KEY,
-                fullname TEXT,
-                country TEXT,
-                information TEXT
-                firstuser INTEGER,
-                FOREIGN KEY (firstuser) REFERENCES user(id) ON DELETE CASCADE  ON UPDATE  CASCADE); 
+        dbobject.execute("""CREATE TABLE IF NOT EXISTS Companies(
+                tiker TEXT PRIMARY KEY, fullname TEXT, country TEXT, info);
             """)
 
-        DBConnection.commit()
+        dbconnection.commit()
     except sqlite3.Error as error:
         print("SQLite3 error", error)
+        dbconnection = False
     finally:
-        if (DBConnection):
-            DBConnection.close()
+        if (dbconnection):
+            dbconnection.close()
 
 
 
 
-def DBAddUser(user: tuple):
+def db_add_user(user_id, gender = "", age = 0):
+    user = tuple(user_id, gender, age)
     try:
-        DBConnection = sqlite3.connect("FinanceBot.db")
-        DBObject = DBConnection.cursor()
-        DBObject.execute("INSERT INTO users VALUES(?, ?, ?);", user)
-        DBConnection.commit()
-        DBConnection.close()
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("INSERT INTO users VALUES(?, ?, ?);", user)
+        dbconnection.commit()
+        dbconnection.close()
     except sqlite3.Error as error:
         print("SQLite3 error", error)
+        dbconnection = False
     finally:
-        if (DBConnection):
-            DBConnection.close()
+        if (dbconnection):
+            dbconnection.close()
 
-def GetAllUsers():
+def db_get_all_users():
     try:
-        DBConnection = sqlite3.connect("FinanceBot.db")
-        DBObject = DBConnection.cursor()
-        DBObject.execute("""SELECT * FROM users;""")
-        res = DBObject.fetchall()
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("""SELECT * FROM users;""")
+        res_array = dbobject.fetchall()
+        resDict_array = []
+        for res in res_array:
+            resDict_array.append(dict(zip([c[0] for c in dbobject.description], res)))
+        dbconnection.close()
     except sqlite3.Error as error:
-        res = []
+        resDict_array = []
         print("SQLite3 error", error)
     finally:
-        if (DBConnection):
-            DBConnection.close()
-        return res
+        return resDict_array
 
 
-def GetUser(user: tuple):
+def db_get_user(user_id):
     try:
-        DBConnection = sqlite3.connect("FinanceBot.db")
-        DBObject = DBConnection.cursor()
-        DBObject.execute("""SELECT * 
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = DBConnection.cursor()
+        dbobject.execute("""SELECT * 
                             FROM users
-                            WHERE userid = {};""".format(user[0]))
-        res = DBObject.fetchall()
-        if res == []:
-            DBAddUser(user)
-            res = GetUser(user)
+                            WHERE userid = {};""".format(user_id))
+        res = dbobject.fetchall()
+        res = dict(zip([c[0] for c in dbobject.description], res))
+        if not res:
+            db_add_user(user)
+            res = db_get_user(user)
+        dbconnection.close()
     except sqlite3.Error as error:
         res = []
         print("SQLite3 error", error)
     finally:
-        if (DBConnection):
-            DBConnection.close()
         return res
 
 
-def DBAddCompanie(Emitent: CompaniesClass.Company):
-    try:
-        DBConnection = sqlite3.connect("FinanceBot.db")
-        DBObject = DBConnection.cursor()
-        CompanyTuple=(Emitent.get_tiker(), Emitent.get_tiker(), Emitent.get_country(), Emitent.get_info())
-        DBObject.execute("INSERT INTO Companies VALUES(?, ?, ?);", CompanyTuple)
-        DBConnection.commit()
-    except sqlite3.Error as error:
-        print("SQLite3 error", error)
-    finally:
-        if (DBConnection):
-            DBConnection.close()
 
-
-def GetAllCompanies():
+def db_company_is_in_base(tiker):
+    res = []
     try:
-        DBConnection = sqlite3.connect("FinanceBot.db")
-        DBObject = DBConnection.cursor()
-        DBObject.execute("""SELECT * FROM Companies;""")
-        res = DBObject.fetchall()
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("""SELECT * 
+                            FROM Companies
+                            WHERE tiker = "{0}"; """.format(tiker))
+        res = dbobject.fetchall()
+        dbconnection.close()
     except sqlite3.Error as error:
         res = []
         print("SQLite3 error", error)
+
+        dbconnection = False
     finally:
-        if (DBConnection):
-            DBConnection.close()
-        return res
+        if not res:
+            return False
+        else:
+            return True
 
 
-def GetCompany(Emitent: CompaniesClass.Company):
+
+def db_add_company(tiker: str,  country: str, fullname = "", info = ""):
+    new_company = tuple([tiker, fullname, country, info])
     try:
-        DBConnection = sqlite3.connect("FinanceBot.db")
-        DBObject = DBConnection.cursor()
-        DBObject.execute("""SELECT * 
-                            FROM Companies;
-                            WHERE tiker = {}""".format(Emitent.get_tiker()))
-        res = DBObject.fetchall()
-        if res == []:
-                DBAddCompanie(Emitent)
-                res = GetCompany(Emitent)
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("INSERT INTO Companies VALUES(?, ?, ?, ?);", new_company)
+        dbconnection.commit()
+        dbconnection.close()
+    except sqlite3.Error as error:
+        print("SQLite3 error", error)
+        dbconnection = False
+    finally:
+        if (dbconnection):
+            dbconnection.close()
+
+def db_update_company_info(tiker, info):
+    try:
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("UPDATE Companies SET info = '{0}' WHERE tiker = '{1}';".format(info, tiker))
+        dbconnection.commit()
+        dbconnection.close()
+    except sqlite3.Error as error:
+        print("SQLite3 error", error)
+        dbconnection = False
+
+def db_set_company_full_name(tiker, fullname):
+    try:
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("UPDATE Companies SET fullname = '{0}' WHERE tiker = '{1}';".format(fullname, tiker))
+        dbconnection.commit()
+        dbconnection.close()
+    except sqlite3.Error as error:
+        print("SQLite3 error", error)
+        dbconnection = False
+
+
+def db_get_company(tiker: str) -> dict:
+    try:
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("""SELECT *
+                            FROM Companies
+                            WHERE tiker = "{}" ;""".format(tiker))
+        res = dbobject.fetchone()
+        res = dict(zip([c[0] for c in dbobject.description], res))
+        if not res:
+                db_add_companie(emitent)
+                res = get_company(emitent)
     except sqlite3.Error as error:
         res = []
         print("SQLite3 error", error)
+        dbconnection = False
     finally:
-        if (DBConnection):
-            DBConnection.close()
+        if (dbconnection):
+            dbconnection.close()
         return res
 
-def TestAddCompanie():
+
+def db_get_all_companies():
     try:
-        DBConnection = sqlite3.connect("FinanceBot.db")
-        DBObject = DBConnection.cursor()
-        CompanyTuple=tuple(tiker = "FIVE", name = "X5GDR", country = "RUSSIA", info = "paterocka perik", userid = "23")
-        DBObject.execute("INSERT INTO Companies VALUES(?, ?, ?);", CompanyTuple)
-        DBConnection.commit()
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("""SELECT * FROM Companies;""")
+        res_array = dbobject.fetchall()
+        resDict_array = []
+        for res in res_array:
+            resDict_array.append(dict(zip([c[0] for c in dbobject.description], res)))
+        dbconnection.close()
     except sqlite3.Error as error:
+        resDict_array = []
         print("SQLite3 error", error)
     finally:
-        if (DBConnection):
-            DBConnection.close()
+        return resDict_array
 
 
-DBInitialise()
-# A = CompaniesClass.Company()
+def db_get_company_info(tiker):
+    try:
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("""SELECT information 
+                            FROM Companies
+                            WHERE tiker = "{}" ;""".format(tiker))
+        res = dbobject.fetchall()
+        # !!!!!!!!!!!!!!!!!!!! Посомтреть что в res
+        print(res)
+        dbconnection.close()
+    except sqlite3.Error as error:
+        res = ""
+        print("SQLite3 error", error)
+        dbconnection = False
+    finally:
+        return res
 
-GetAllUsers()
+def db_delete_company_by_tiker(tiker):
+    try:
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("""DELETE 
+                            FROM Companies
+                            WHERE tiker = '{}';""".format(tiker))
+        dbconnection.close()
+    except sqlite3.Error as error:
+        res = {info: ""}
+        print("SQLite3 error", error)
 
-# while True:
+
+
+
+#
+# def testaddcompanie():
+#     try:
+#         dbconnection = sqlite3.connect("FinanceBot.db")
+#         dbobject = dbconnection.cursor()
+#         companytuple=tuple(tiker = "FIVE", name = "X5GDR", country = "RUSSIA", info = "paterocka perik", userid = "23")
+#         DBObject.execute("INSERT INTO Companies VALUES(?, ?, ?);", CompanyTuple)
+#         DBConnection.commit()
+#     except sqlite3.Error as error:
+#         print("SQLite3 error", error)
+#     finally:
+#         if (DBConnection):
+#             DBConnection.close()
+
+
+# db_initialise()
+# A = CompaniesClass.Company()tAllUsers()
+
+ # while True:
 #     print("Введите Id, Пол и Возрвст пользователя через пробел")
 #     UserString = input()
 #     if UserString == "":
@@ -158,4 +243,4 @@ GetAllUsers()
 #     user = tuple(UserString.split())
 #     DBAddUser(user)
 #
-print(GetAllUsers())
+

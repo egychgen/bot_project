@@ -81,7 +81,7 @@ def multiplicators_names(bot, update):
 def multiplicators(bot, update):
     global company
     names = bot.message.text.split()
-    mult = company.Get_Multiplicators(names)
+    mult = company.get_multiplicators(names)
     line = str()
     for key, value in mult.items():
         line = line + key + ' : ' + value + ' ; '
@@ -115,7 +115,7 @@ def get_plot(bot, update):
         str(time.mktime(time.struct_time((int(dmy[2]), int(dmy[1]), int(dmy[0]), 0, 0, 0, 0, 0, 0)))).split('.')[0]]
     # print('time.struct_time =', time.struct_time((int(dmy[2]), int(dmy[1]), int(dmy[0]), 0, 0, 0, 0, 0, 0)))
     # print('date in first =', date)
-    company.Get_Company_Stocks_Grafic(date, "Grafic")
+    company.get_company_stocks_graphic(date, "Grafic")
     plot_name = company.get_tiker() + '.png'
     update.bot.send_photo(chat_id=bot.message.chat.id, photo=open(plot_name, 'rb'))
     bot.message.reply_text('Хотите сравнить график стоимости с другой компанией?', reply_markup=get_keyboard(1))
@@ -142,7 +142,7 @@ def send_comparing_plot(bot, update):
     global company_to_compare, date, company
     company_info_to_compare[1] = bot.message.text
     company_to_compare = Company(company_info_to_compare[0], company_info_to_compare[1])
-    company_to_compare.Compare_Grafic_Of_To_Companies(company_to_compare, date)
+    company_to_compare.compare_graphics_of_to_companies(company_to_compare, date)
     plot_name = company_to_compare.get_tiker() + '_' + company_to_compare.get_tiker() + '.png'
     update.bot.send_photo(chat_id=bot.message.chat.id, photo=open(plot_name, 'rb'))
     return 'send_comparing_plot'
