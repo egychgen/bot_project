@@ -1,10 +1,4 @@
-# import requests
-# import json
 import matplotlib.pyplot as plt
-# import matplotlib.ticker as ticker
-# import matplotlib.dates as mdates
-# import pandas as pd
-# import numpy as np
 import parsing
 
 
@@ -127,33 +121,33 @@ class Company:
 
 
 
-
-if __name__ == "__main__":
-    # print(DataBase.db_get_all_companies())
-
-
-
-
-    date = ["1600000000", "1618317179"]
-
-    tiker1 = "SBER"
-    tiker2 = "AAPL"
-
-    # names = ["P/E","P/S","EV/EBITDA", "HUI/432"]
-
-    Comp1 = Company(tiker1, "Rus")
-    Comp2 = Company(tiker2, "USA")
-
-    Comp1.get_company_stocks_graphic(date, "Grafic")
-    # Comp2.Get_Company_Stocks_Graphic(date, "Grafic")
-
-    # Пока что это песпонтово, тк хз, как сравнивать,
-    # если у одних график в баксах, а у другиз в рублях
-    # Comp1.compare_graphics_of_to_companies(Comp2, date)
-    # print(tiker1 + "   "  + str(Comp1.get_multiplicators(names)))
-    # print(tiker2 + "   "  + str(Comp2.get_multiplicators(names)))
-
-    # Comp1.parsing_divd()
-    # print(Comp1.get_info())
+#
+# if __name__ == "__main__":
+#     # print(DataBase.db_get_all_companies())
+#
+#
+#
+#
+#     date = ["1600000000", "1618317179"]
+#
+#     tiker1 = "SBER"
+#     tiker2 = "AAPL"
+#
+#     # names = ["P/E","P/S","EV/EBITDA", "HUI/432"]
+#
+#     Comp1 = Company(tiker1, "Rus")
+#     Comp2 = Company(tiker2, "USA")
+#
+#     Comp1.get_company_stocks_graphic(date, "Grafic")
+#     # Comp2.Get_Company_Stocks_Graphic(date, "Grafic")
+#
+#     # Пока что это песпонтово, тк хз, как сравнивать,
+#     # если у одних график в баксах, а у другиз в рублях
+#     # Comp1.compare_graphics_of_to_companies(Comp2, date)
+#     # print(tiker1 + "   "  + str(Comp1.get_multiplicators(names)))
+#     # print(tiker2 + "   "  + str(Comp2.get_multiplicators(names)))
+#
+#     # Comp1.parsing_divd()
+#     # print(Comp1.get_info())
 
 

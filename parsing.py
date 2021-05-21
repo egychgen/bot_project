@@ -1,19 +1,21 @@
 import requests
 import json
-# import matplotlib.pyplot as plt
-# import matplotlib.ticker as ticker
-# import matplotlib.dates as mdates
 from datetime import datetime
 from fake_useragent import UserAgent
 ch = UserAgent().safari
 
 # Область работы с внешними данными
 # Функции из данной области используются в методах класса Company
-
-
-
-
-
+# Данные беруться с сайтов:
+# https://investmint.ru/
+# https://api.bcs.ru/
+# https://smart-lab.ru/
+# http://www.cbr.ru/
+# https://finsovetnik.com/
+#
+#
+#
+#
 def parse_information(tiker: str) -> str:
     text = ""
     try:
