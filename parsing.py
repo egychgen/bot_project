@@ -1,11 +1,17 @@
 import requests
 import json
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import matplotlib.dates as mdates
+# import matplotlib.pyplot as plt
+# import matplotlib.ticker as ticker
+# import matplotlib.dates as mdates
 from datetime import datetime
 from fake_useragent import UserAgent
-ch = UserAgent().chrome
+ch = UserAgent().safari
+
+# Область работы с внешними данными
+# Функции из данной области используются в методах класса Company
+
+
+
 
 
 def parse_information(tiker: str) -> str:
@@ -13,7 +19,7 @@ def parse_information(tiker: str) -> str:
     try:
         r = requests.get("https://investmint.ru/{0}/".format(tiker), headers={'User-Agent': ch})
         text = r.text
-        text = text[text.find("<h2>О компании</h2>") + 19:]
+        text = text[text.find("<h2>О компании</h2>") :]
         text = text[text.find("<p>") + 3:]
         text = text.replace("<strong>", "")
         text = text.replace("</strong>", "")
@@ -28,26 +34,26 @@ def parse_information(tiker: str) -> str:
 
 
 def parse_graphics_data(tiker: str, date):
-    Price_Array, Time_Array = [0], [0]
+    price_array, time_array = [0], [0]
     try:
-        STOСKS_JSON = requests.get(
+        stoсks_json = requests.get(
             'https://api.bcs.ru/udfdatafeed/v1/history?symbol={0}&resolution=D&from={1}&to={2}'.format(tiker,
                                                                                                        date[0],
                                                                                                        date[1]),
             headers={'User-Agent': ch})
-        Stoсks_Dict = json.loads(STOСKS_JSON.text)
-        if Stoсks_Dict.get("errmsg") is None:
-            Time_Array = Stoсks_Dict.get("t")
-            Time_Array = [datetime.utcfromtimestamp(e) for e in Time_Array]
-            Price_Array = Stoсks_Dict.get("c")
-            return Price_Array, Time_Array
+        stoсks_dict = json.loads(stoсks_json.text)
+        if stoсks_dict.get("errmsg") is None:
+            time_array = stoсks_dict.get("t")
+            time_array = [datetime.utcfromtimestamp(e) for e in time_array]
+            price_array = stoсks_dict.get("c")
+            return price_array, time_array
         else:
             print("There is no such tiker or date period")
             return [0], [0]
     except:
-        print("Request error", STOСKS_JSON.status_code)
+        print("Request error", stoсks_json.status_code)
     finally:
-        return Price_Array, Time_Array
+        return price_array, time_array
 
 
 
@@ -59,62 +65,62 @@ def parse_multiplicators(tiker: str,country: str,names) -> dict:
 
 
 def parse_multiplicators_for_russian_company(tiker, names) -> dict:
-    Multiplicators_Dict = {}
+    multiplicators_dict = {}
     try:
-        Multiplicator_HTML = requests.get('https://smart-lab.ru/q/{0}/f/y/MSFO'.format(tiker),
+        multiplicator_html = requests.get('https://smart-lab.ru/q/{0}/f/y/MSFO'.format(tiker),
                                           headers={'User-Agent': ch})
-        text = Multiplicator_HTML.text
+        text = multiplicator_html.text
         for i in range(len(names)):
 
             div = names[i].split("/")
             if text.find(div[0] + " / " + div[1]) > 0:
-                Multiplicator_Value = text[text.find(div[0] + " / " + div[1]):]
+                multiplicator_value = text[text.find(div[0] + " / " + div[1]):]
             elif text.find(div[0] + "/" + div[1]) > 0:
-                Multiplicator_Value = text[text.find(div[0] + "/" + div[1]):]
+                multiplicator_value = text[text.find(div[0] + "/" + div[1]):]
             else:
-                Multiplicators_Dict.update({names[i]: "There is no such multiplicator"})
+                multiplicators_dict.update({names[i]: "There is no such multiplicator"})
                 continue
-            Multiplicator_Value = Multiplicator_Value[str(Multiplicator_Value).find("ltm_spc"):]
-            Multiplicator_Value = Multiplicator_Value[str(Multiplicator_Value).find("<td>") + 4:]
-            Multiplicator_Value = str(Multiplicator_Value[:str(Multiplicator_Value).find("</td>")]).split()
+            multiplicator_value = multiplicator_value[str(multiplicator_value).find("ltm_spc"):]
+            multiplicator_value = multiplicator_value[str(multiplicator_value).find("<td>") + 4:]
+            multiplicator_value = str(multiplicator_value[:str(multiplicator_value).find("</td>")]).split()
             Value = ""
-            for j in range(len(Multiplicator_Value)):
-                Value = Value + Multiplicator_Value[j]
-                Multiplicators_Dict.update({names[i]: Value})
+            for j in range(len(multiplicator_value)):
+                Value = Value + multiplicator_value[j]
+                multiplicators_dict.update({names[i]: Value})
     except requests.exceptions.HTTPError as error:
         print("Request error", error.response.status_code)
-        Multiplicators_Dict = {"No": 0}
+        multiplicators_dict = {"No": 0}
     finally:
-        return Multiplicators_Dict
+        return multiplicators_dict
 
 
 def parse_multiplicators_for_abroad_company(tiker: str, names) -> dict:
-    Multiplicators_Dict = {}
+    multiplicators_dict = {}
     try:
-        Multiplicator_HTML = requests.get('https://finbull.ru/stock/{0}/'.format(tiker),
+        multiplicator_html = requests.get('https://finbull.ru/stock/{0}/'.format(tiker),
                                           headers={'User-Agent': ch})
-        text = Multiplicator_HTML.text
+        text = multiplicator_html.text
         for i in range(len(names)):
             div = names[i].split("/")
             if text.find(div[0] + " / " + div[1]) > 0:
-                Multiplicator_Value = text[text.find(div[0] + " / " + div[1]):]
+                multiplicator_value = text[text.find(div[0] + " / " + div[1]):]
             elif text.find(div[0] + "/" + div[1]) > 0:
-                Multiplicator_Value = text[text.find(div[0] + "/" + div[1]):]
+                multiplicator_value = text[text.find(div[0] + "/" + div[1]):]
             else:
-                Multiplicators_Dict.update({names[i]: "There is no such multiplicator"})
+                multiplicators_dict.update({names[i]: "There is no such multiplicator"})
                 continue
-            Multiplicator_Value = Multiplicator_Value[Multiplicator_Value.find("<td"):]
-            Multiplicator_Value = Multiplicator_Value[
-                                  Multiplicator_Value.find(">") + 1:Multiplicator_Value.find("</")].split()
+            multiplicator_value = multiplicator_value[multiplicator_value.find("<td"):]
+            multiplicator_value = multiplicator_value[
+                                  multiplicator_value.find(">") + 1:multiplicator_value.find("</")].split()
             Value = ""
-            for j in range(len(Multiplicator_Value)):
-                Value = Value + Multiplicator_Value[j]
-            Multiplicators_Dict.update({names[i]: Value})
+            for j in range(len(multiplicator_value)):
+                Value = Value + multiplicator_value[j]
+            multiplicators_dict.update({names[i]: Value})
     except requests.exceptions.HTTPError as error:
         print("Request error", error.response.status_code)
-        Multiplicators_Dict = {"No": 0}
+        multiplicators_dict = {"No": 0}
     finally:
-        return Multiplicators_Dict
+        return multiplicators_dict
 
 
 def parse_price(tiker: str) -> str:
@@ -131,14 +137,84 @@ def parse_price(tiker: str) -> str:
     finally:
         return text
 
+def parse_Central_Bank_to_get_currecy(currency_name):
+    text = ""
+    try:
+        r = requests.get("http://www.cbr.ru/scripts/XML_daily.asp?")
+        text = r.text
+    except requests.exceptions.HTTPError as error:
+        print("Request error", error.response.status_code)
+        text = "We haven't got information"
+    finally:
+        return text
+
+def parse_currency_value(currency_name):
+    text = parse_Central_Bank_to_get_currecy(currency_name)
+    if text != "We haven't got information":
+        text = text[text.find(currency_name):]
+        text = text[text.find("Value") + 6:text.find("</Value>")]
+    return text
+
+def parse_currency_value_for_graphics(currency_name):
+    text = parse_Central_Bank_to_get_currecy(currency_name)
+    if text != "We haven't got information":
+        text = text[text.find(currency_name):]
+        text = text[text.find("Value") + 6:text.find("</Value>")]
+    text = text[:text.find(",")]
+    return int(text)
+
+def parse_company_tiker_by_name(fullname):
+    text = ""
+    try:
+        r = requests.get("https://finsovetnik.com/rf/")
+        text = r.text
+        text = text[text.find(fullname):]
+        text = text[text.find("even")+6:]
+        text = text[:text.find("</td")]
+        print(text)
+    except requests.exceptions.HTTPError as error:
+        print("Request error", error.response.status_code)
+        text = "We haven't got information"
+    finally:
+        return text
+
+def parse_companies_names_tikers_categories():
+    arr = [[],[]]
+    try:
+        r = requests.get("https://finsovetnik.com/rf/")
+        maintext = r.text
+        maintext = maintext[maintext.find("ETLN"):]
+        maintext = maintext[maintext.find("href")+3:]
+        while len(arr[0]) < 76:
+            nametext = maintext[maintext.find(">")+1:maintext.find("<")]
+            tikertext = maintext[maintext.find("even")+6:]
+            tikertext = tikertext[:tikertext.find("</td")]
+            maintext = maintext[maintext.find("</tr>"):]
+            maintext = maintext[maintext.find("href")+3:]
+        # print(maintext)
+            arr[0].append(nametext)
+            arr[1].append(tikertext)
+        return arr
+
+
+    except requests.exceptions.HTTPError as error:
+        print("Request error", error.response.status_code)
+        text = "We haven't got information"
+    finally:
+        # return text
+        pass
+
+
+
 if __name__ == "__main__":
-    date = ["1600000000", "1620000000"]
-
-    print(parse_price("FIVE"))
-    print(parse_multiplicators("FIVE", "Rus", ["P/E"]))
+    # date = ["1600000000", "1620000000"]
+    #
+    # print(parse_price("FIVE"))
+    # print(parse_multiplicators("FIVE", "Rus", ["P/E"]))
+    # print(parse_information("FIVE"))
+    # print(parse_graphics_data("T", date))
+    # print(int(parse_currency_value_for_graphics("USD")))
     print(parse_information("FIVE"))
-    print(parse_graphics_data("T", date))
-
-# def parse_dividens():
-#     pass
+    # def parse_dividens():
+    #       pass
 

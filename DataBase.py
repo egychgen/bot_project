@@ -1,6 +1,7 @@
 import sqlite3
-import os
-# import CompaniesClass
+
+# В данной области записаны функции и методы для работу с БД
+# Все методы использованные здесь имеют понятные названия и так же используются классом
 
 def db_initialise():
     try:
@@ -65,15 +66,12 @@ def db_get_all_users():
 def db_get_user(user_id):
     try:
         dbconnection = sqlite3.connect("FinanceBot.db")
-        dbobject = DBConnection.cursor()
+        dbobject = dbconnection.cursor()
         dbobject.execute("""SELECT * 
                             FROM users
                             WHERE userid = {};""".format(user_id))
         res = dbobject.fetchall()
         res = dict(zip([c[0] for c in dbobject.description], res))
-        if not res:
-            db_add_user(user)
-            res = db_get_user(user)
         dbconnection.close()
     except sqlite3.Error as error:
         res = []
@@ -130,7 +128,6 @@ def db_update_company_info(tiker, info):
         dbconnection.close()
     except sqlite3.Error as error:
         print("SQLite3 error", error)
-        dbconnection = False
 
 def db_set_company_full_name(tiker, fullname):
     try:
@@ -141,7 +138,6 @@ def db_set_company_full_name(tiker, fullname):
         dbconnection.close()
     except sqlite3.Error as error:
         print("SQLite3 error", error)
-        dbconnection = False
 
 
 def db_get_company(tiker: str) -> dict:
@@ -153,9 +149,6 @@ def db_get_company(tiker: str) -> dict:
                             WHERE tiker = "{}" ;""".format(tiker))
         res = dbobject.fetchone()
         res = dict(zip([c[0] for c in dbobject.description], res))
-        if not res:
-                db_add_companie(emitent)
-                res = get_company(emitent)
     except sqlite3.Error as error:
         res = []
         print("SQLite3 error", error)
@@ -187,12 +180,12 @@ def db_get_company_info(tiker):
     try:
         dbconnection = sqlite3.connect("FinanceBot.db")
         dbobject = dbconnection.cursor()
-        dbobject.execute("""SELECT information 
+        dbobject.execute("""SELECT info 
                             FROM Companies
-                            WHERE tiker = "{}" ;""".format(tiker))
+                            WHERE tiker = '{}' ;""".format(tiker))
         res = dbobject.fetchall()
-        # !!!!!!!!!!!!!!!!!!!! Посомтреть что в res
-        print(res)
+        res = res[0]
+        res = res[0]
         dbconnection.close()
     except sqlite3.Error as error:
         res = ""
@@ -210,37 +203,25 @@ def db_delete_company_by_tiker(tiker):
                             WHERE tiker = '{}';""".format(tiker))
         dbconnection.close()
     except sqlite3.Error as error:
-        res = {info: ""}
         print("SQLite3 error", error)
 
 
+def db_find_company_tiker_by_name(fullname):
+    try:
+        dbconnection = sqlite3.connect("FinanceBot.db")
+        dbobject = dbconnection.cursor()
+        dbobject.execute("""SELECT tiker 
+                               FROM Companies
+                               WHERE fullname = "{}" ;""".format(fullname))
+        res = dbobject.fetchall()
+        res = res[0]
+        res = res[0]
+        dbconnection.close()
+    except sqlite3.Error as error:
+        res = ""
+        print("SQLite3 error", error)
+    finally:
+        return res
 
 
-#
-# def testaddcompanie():
-#     try:
-#         dbconnection = sqlite3.connect("FinanceBot.db")
-#         dbobject = dbconnection.cursor()
-#         companytuple=tuple(tiker = "FIVE", name = "X5GDR", country = "RUSSIA", info = "paterocka perik", userid = "23")
-#         DBObject.execute("INSERT INTO Companies VALUES(?, ?, ?);", CompanyTuple)
-#         DBConnection.commit()
-#     except sqlite3.Error as error:
-#         print("SQLite3 error", error)
-#     finally:
-#         if (DBConnection):
-#             DBConnection.close()
-
-
-# db_initialise()
-# A = CompaniesClass.Company()tAllUsers()
-
- # while True:
-#     print("Введите Id, Пол и Возрвст пользователя через пробел")
-#     UserString = input()
-#     if UserString == "":
-#         print("Вы ничего не ввели я отключаюсь")
-#         break
-#     user = tuple(UserString.split())
-#     DBAddUser(user)
-#
-
+# db_get_company_info("SBER")
