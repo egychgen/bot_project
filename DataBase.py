@@ -218,6 +218,7 @@ def db_find_company_tiker_by_name(fullname):
         res = dbobject.fetchall()
         res = res[0]
         res = res[0]
+        res = res.split(",")[0]
         dbconnection.close()
     except sqlite3.Error as error:
         res = ""

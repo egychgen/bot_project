@@ -55,22 +55,22 @@ def knowledge_command(bot, update):
                            'Виды мультпликаторов:\n'
                            'ROE = чистая прибыль/капитал * 100 \n'
                            'ROA = чистая прибыль/активы компании * 100 \n'
-                           ' D/E = заемный капитал / собственный капитал \n'
-                           ' P/E = цена акции / прибыль на акцию \n'
-                           ' P/S = капитализация / годовая выручка \n'
-                           ' EV/EBITDA = (рыночная капитализация + долговые обязательства - денежные средства компании) / (прибыль до выплаты процентов, налогов и амортизации)')
+                           'D/E = заемный капитал / собственный капитал \n'
+                           'P/E = цена акции / прибыль на акцию \n'
+                           'P/S = капитализация / годовая выручка \n'
+                           'EV/EBITDA = (рыночная капитализация + долговые обязательства - денежные средства компании) / (прибыль до выплаты процентов, налогов и амортизации)')
 
 
 def stop_command(bot, update):
-    bot.message.reply_text('До свидания, {}!').format(bot.message.chat.first_name)
-    return 'stop'
-
-
-def change_company_command(bot, update):
-    print('here')
-    bot.message.reply_text('Подождите, идет смена компании')
-    bot.message.reply_text('По какому критерию будуте искать компанию?', reply_markup=get_keyboard(9))
-    return 'company_criteria'
+    global company_info, company_info_to_compare, company, company_to_compare, date, plot_name
+    bot.message.reply_text('До свидания, {}!'.format(bot.message.chat.first_name))
+    company_info = [None, None, None]
+    company_info_to_compare = [None, None, None]
+    company = None
+    company_to_compare = None
+    date = []
+    plot_name = None
+    return ConversationHandler.END
 
 
 def rate_command(bot, update):
@@ -78,7 +78,7 @@ def rate_command(bot, update):
     return 'rate'
 
 
-"""Keyboard"""
+"""Клавиатура"""
 
 
 def get_keyboard(x):
@@ -87,9 +87,8 @@ def get_keyboard(x):
         [['Курс валют'], ['Данные о компании'], ['Основные понятия, которые вам пригодятся']],
         resize_keyboard=True, one_time_keyboard=True)
     company_keyboard = ReplyKeyboardMarkup(
-        [['Мультипликатор', 'График стоимости компании'], ['Информация о компании',
-                                                           'Стоимость компании']], resize_keyboard=True,
-        one_time_keyboard=True)
+        [['Мультипликатор', 'График стоимости компании'], ['Информация о компании', 'Стоимость компании'],
+         ['Смена компании']], resize_keyboard=True, one_time_keyboard=True)
     time_keyboard = ReplyKeyboardMarkup([['1 месяц', '3 месяца'], ['6 месяцев', '9 месяцев'],
                                          ['1 год', '3 года']], resize_keyboard=True, one_time_keyboard=True)
     rate_keyboard = ReplyKeyboardMarkup([['Китайский юань', 'Доллар США', 'Евро'], ['Индийских рупий',
@@ -160,25 +159,26 @@ def user_fullname(bot, update):
 
 def tiker_by_fullname_func(bot, update):
     global company_info
-    reply = ['have_tiker_by_fullname_func', 'dont_have_tiker_by_fullname_func']
+    reply = ['have_tiker_by_fullname_func', 'company_criteria']
     fullname = bot.message.text
     tiker = DataBase.db_find_company_tiker_by_name(fullname)
     if len(tiker) != 0:
         i = 0
         bot.message.reply_text('Тикер компании: ' + tiker)
         company_info[0] = tiker
+        bot.message.reply_text('Введите страну регистрации компании', reply_markup=get_keyboard(5))
     else:
         i = 1
         bot.message.reply_text('Такой компании нет в нашей базе данных. '
                                'Попробуйте найти информацию о ней при помощи тикера')
+        bot.message.reply_text('По какому критерию хотите искать компанию?', reply_markup=get_keyboard(9))
     return reply[i]
 
 
 def company_country_func(bot, update):
     global company_info
     bot.message.reply_text('Введите страну регистрации компании', reply_markup=get_keyboard(5))
-    if company_info[0] == None:
-        company_info[0] = bot.message.text
+    company_info[0] = bot.message.text
     return 'company_country'
 
 
@@ -195,6 +195,11 @@ def get_info_about_company(bot, update):
     bot.message.reply_text('Выберите информацию, которую вы хотите узнать', reply_markup=get_keyboard(2))
     return 'company_info'
 
+
+"""Смена компании"""
+def change_company(bot, update):
+    bot.message.reply_text('Вы точно хотите сменить компанию?', reply_markup=get_keyboard(1))
+    return 'change_company'
 
 """Функции для работы с мультипликаторами"""
 
@@ -265,7 +270,7 @@ def get_plot(bot, update):
     return 'get_plot'
 
 
-"""Функции для работы с графиком 2 компаний"""
+"""Функции для работы с графиком 2x компаний"""
 
 
 def company_to_compare_criteria_func(bot, update):
@@ -295,28 +300,27 @@ def user_fullname_compare(bot, update):
 
 def tiker_by_fullname_func_compare(bot, update):
     global company_info_to_compare
-    reply = ['have_tiker_by_fullname_func_compare', 'dont_have_tiker_by_fullname_func_compare']
+    reply = ['have_tiker_by_fullname_func_compare', 'company_to_compare_criteria']
     fullname = bot.message.text
     tiker = DataBase.db_find_company_tiker_by_name(fullname)
-    print(len(tiker))
     if len(tiker) != 0:
         i = 0
         bot.message.reply_text('Тикер компании: ' + tiker)
         company_info_to_compare[0] = tiker
-        company_country_func(bot, update)
+        bot.message.reply_text('Введите страну регистрации компании', reply_markup=get_keyboard(5))
     else:
         i = 1
         bot.message.reply_text('Такой компании нет в нашей базе данных. '
                                'Попробуйте найти информацию о ней при помощи тикера')
-    print(reply[i])
+        bot.message.reply_text('По какому критерию хотите искать компанию?', reply_markup=get_keyboard(9))
+    print('reply[i] =', reply[i])
     return reply[i]
 
 
 def company_to_compare_country_func(bot, update):
     global company_info_to_compare
     bot.message.reply_text('Введите страну регистрации компании', reply_markup=get_keyboard(5))
-    if company_info_to_compare[0] == None:
-        company_info_to_compare[0] = bot.message.text
+    company_info_to_compare[0] = bot.message.text
     return 'company_country_compare'
 
 
@@ -396,7 +400,14 @@ def follow_question(bot, update):
 
 
 def goodbye(bot, update):
+    global company_info, company_info_to_compare, company, company_to_compare, date, plot_name
     bot.message.reply_text('До свидания, {}!'.format(bot.message.chat.first_name))
+    company_info = [None, None, None]
+    company_info_to_compare = [None, None, None]
+    company = None
+    company_to_compare = None
+    date = []
+    plot_name = None
     return ConversationHandler.END
 
 
@@ -405,15 +416,14 @@ def main():
     my_bot.dispatcher.add_handler(CommandHandler('start', start_command))
     my_bot.dispatcher.add_handler(CommandHandler('info', info_command))
     my_bot.dispatcher.add_handler(CommandHandler('knowledge', knowledge_command))
-    my_bot.dispatcher.add_handler(CommandHandler('change_company', change_company_command))
-    # my_bot.dispatcher.add_handler(CommandHandler('stop', goodbye))
+    my_bot.dispatcher.add_handler(CommandHandler('stop', goodbye))
     my_bot.dispatcher.add_handler(MessageHandler(Filters.regex('Основные понятия, которые вам пригодятся'), main_func))
     my_bot.dispatcher.add_handler(ConversationHandler(
         entry_points=[MessageHandler(Filters.regex('Курс валют'), rate_command), CommandHandler('rate', rate_command)],
         states={'rate': [MessageHandler(Filters.text, rate)],
                 'rate_end': [MessageHandler(Filters.regex('Нет'), goodbye),
                              MessageHandler(Filters.regex('Да'), delta_func)]},
-        fallbacks=[]))
+        fallbacks=[CommandHandler('stop', goodbye)]))
     my_bot.dispatcher.add_handler(
         ConversationHandler(entry_points=[MessageHandler(Filters.regex('Данные о компании'), company_criteria_func)],
                             states={'company_criteria': [MessageHandler(Filters.regex('Тикер'), company_tiker_func),
@@ -437,14 +447,15 @@ def main():
                                     'user_tiker': [MessageHandler(Filters.text, company_country_func)],
                                     'user_fullname': [MessageHandler(Filters.text, tiker_by_fullname_func)],
                                     'have_tiker_by_fullname_func': [MessageHandler(Filters.text, info_about_company)],
-                                    'dont_have_tiker_by_fullname_func': [
-                                        MessageHandler(Filters.text, company_criteria_func)],
                                     'company_country': [MessageHandler(Filters.text, info_about_company)],
                                     'company_info': [
                                         MessageHandler(Filters.regex('Мультипликатор'), multiplicators_names),
                                         MessageHandler(Filters.regex('График стоимости компании'), plot_time),
                                         MessageHandler(Filters.regex('Стоимость компании'), get_company_price),
-                                        MessageHandler(Filters.regex('Информация о компании'), get_company_info)],
+                                        MessageHandler(Filters.regex('Информация о компании'), get_company_info),
+                                        MessageHandler(Filters.regex(''), change_company)],
+                                    'change_company': [MessageHandler(Filters.regex('Да'), company_criteria_func),
+                                                       MessageHandler(Filters.regex('Нет'), info_about_company)],
                                     'multiplicators_names': [MessageHandler(Filters.text, multiplicators)],
                                     'plot_time': [MessageHandler(Filters.text, get_plot)],
                                     'get_plot': [MessageHandler(Filters.regex('Да'), company_to_compare_criteria_func),
@@ -477,8 +488,7 @@ def main():
                                     'follow_question': [MessageHandler(Filters.regex('Нет'), goodbye),
                                                         MessageHandler(Filters.regex('Да'), get_info_about_company)],
                                     },
-                            fallbacks=[CommandHandler('stop', goodbye),
-                                       CommandHandler('change_company', change_company_command)])
+                            fallbacks=[CommandHandler('stop', goodbye)])
     )
     my_bot.start_polling()
     my_bot.idle()
