@@ -73,7 +73,7 @@ class Company:
             plt.plot(time_array, price_array, color=color, linewidth=3)
             plt.legend(data, loc=2, fontsize="large", labelcolor=color, shadow=True)
             plt.grid()
-            plt.show()
+            # plt.show()
             fig.savefig(self.__tiker)
         elif grafic_or_arrays == "Arrays":
             return time_array, price_array
@@ -116,7 +116,7 @@ class Company:
         plt.plot(other_time_array, other_price_array, color=other_color, linewidth = 3)
         plt.legend(data, loc=2, fontsize="large", labelcolor = "blue", shadow=True)
         plt.grid()
-        plt.show()
+        # plt.show()
         fig.savefig(self.__tiker + "_" + other.__tiker)
 
 
